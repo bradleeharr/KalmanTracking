@@ -30,6 +30,7 @@ def init_kalman_filter(obj_id, min_x, min_y, width, height, configuration='posit
                                         [0, 0, 0, 0, 0, 0, 0, 1]])
         dim = 8
         t_cov, o_cov, initial_cov = (10, 100, 25)
+        t_cov, o_cov, initial_cov = (40, 500, 100)
     else:
         raise ValueError("Invalid Kalman Filter configuration. Needs to be 'position' or 'velocity'.")
 
@@ -101,12 +102,12 @@ def main():
         for obj_id in original_positions:
             plt.figure()
             plt.plot(time_axis, original_positions[obj_id]['x'], color='blue', label='Original X')
-            plt.plot(time_axis, original_positions[obj_id]['y'], color='blue', linestyle='--', label='Original Y')
-            plt.plot(time_axis, noisy_positions[obj_id]['x'], color='green', label='Noisy (Corrupted) X')
-            plt.plot(time_axis, noisy_positions[obj_id]['y'], color='green', linestyle='--',
-                     label='Noisy (Corrupted) Y')
-            plt.plot(time_axis, filtered_positions[obj_id]['x'], color='red', label='Filtered X')
-            plt.plot(time_axis, filtered_positions[obj_id]['y'], color='red', linestyle='--', label='Filtered Y')
+            #plt.plot(time_axis, original_positions[obj_id]['y'], color='blue', linestyle='--', label='Original Y')
+            plt.plot(time_axis, noisy_positions[obj_id]['x'], linestyle=':', color='green', label='Noisy X')
+            #plt.plot(time_axis, noisy_positions[obj_id]['y'], color='green', linestyle='--',
+            #         label='Noisy (Corrupted) Y')
+            #plt.plot(time_axis, filtered_positions[obj_id]['x'], color='red',  label='Filtered X')
+            #plt.plot(time_axis, filtered_positions[obj_id]['y'], color='red', linestyle='--', label='Filtered Y')
             plt.xlabel('Time (frame number)')
             plt.ylabel('Position')
             plt.legend()

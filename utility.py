@@ -29,8 +29,8 @@ def noisify_data(annotations, noise_probability=0.1, noise_length=5, noise_type=
     if noise_type == 'gaussian':
         for ann in annotations:
             noisy_ann = list(ann)
-            noise = np.random.normal(0, 45, 4)
-            noisy_ann[2:6] = np.add(noisy_ann[2:6], noise)
+            noise = np.random.normal(0, 25, 2)
+            noisy_ann[2:4] = np.add(noisy_ann[2:4], noise)
             noisy_annotations.append(tuple(noisy_ann))
     elif noise_type == 'nonlinear gaussian':
         for ann in annotations:
