@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from utility import *
+from collections import defaultdict
 
 from pykalman import KalmanFilter
 
@@ -28,18 +29,20 @@ def init_kalman_filter(obj_id, min_x, min_y, width, height, configuration='posit
                                         [0, 0, 0, 0, 0, 0, 1, 0],
                                         [0, 0, 0, 0, 0, 0, 0, 1]])
         dim = 8
+        t_cov, o_cov, initial_cov = (10, 100, 25)
     else:
         raise ValueError("Invalid Kalman Filter configuration. Needs to be 'position' or 'velocity'.")
 
     initial_state = np.zeros(dim)
     initial_state[:4] = [min_x, min_y, width, height]
     observation_matrix = np.eye(dim)[:4]
+
     kf = KalmanFilter(transition_matrices=transition_matrices,
                       observation_matrices=observation_matrix,
                       initial_state_mean=initial_state,
-                      transition_covariance=0.1 * np.eye(dim),
-                      observation_covariance=1 * np.eye(4),
-                      initial_state_covariance=1 * np.eye(dim))
+                      transition_covariance=10 * np.eye(dim),
+                      observation_covariance=100 * np.eye(4),
+                      initial_state_covariance=25 * np.eye(dim))
     return kf, initial_state
 
 
@@ -67,33 +70,48 @@ def kalman_tracking(annotations):
 
     return results
 
+# Extract the original, noisy, and filtered x, y positions for each object
+def extract_positions(annotations):
+    positions = defaultdict(lambda: {'x': [], 'y': []})
+    for ann in annotations:
+        obj_id = ann[1]
+        x = ann[2]
+        y = ann[3]
+        positions[obj_id]['x'].append(x)
+        positions[obj_id]['y'].append(y)
+    return positions
+
+def distance(x,y):
+    return np.sqrt(np.square(x) + np.square(y))
 
 def main():
     annotations_dir = r'C:\Users\bubba\PycharmProjects\MultiBandIRTracking\TrainReal\annotations'
     csv_files = get_csv_files_in_folder(annotations_dir)
     for idx, csv_file in enumerate(csv_files):
         original_annotations = read_annotations_from_csv(csv_file)
-        filtered_annotations = kalman_tracking(original_annotations)
+        noisy_annotations = noisify_data(original_annotations)
+        filtered_annotations = kalman_tracking(noisy_annotations)
 
-        # Calculate the distance between the original and filtered positions
-        distances = []
-        for orig_ann, filt_ann in zip(original_annotations, filtered_annotations):
-            orig_x, orig_y = orig_ann[2], orig_ann[3]
-            filt_x, filt_y = filt_ann[2], filt_ann[3]
-            distance = np.sqrt((orig_x - filt_x) ** 2 + (orig_y - filt_y) ** 2)
-            distances.append(distance)
-            plt.figure(idx)
+        original_positions = extract_positions(original_annotations)
+        noisy_positions = extract_positions(noisy_annotations)
+        filtered_positions = extract_positions(filtered_annotations)
 
-        # Plot the distance over time
-        frame_numbers = [ann[0] for ann in original_annotations]
-        plt.plot(frame_numbers, distances, label='Distance (Expected vs Filtered)')
-        plt.xlabel('Frame Number')
-        plt.ylabel('Distance')
-        plt.legend()
-        plt.title(f'Distance between Actual and Filtered Positions for {os.path.basename(csv_file)}')
+        time_axis = list(range(len(next(iter(original_positions.values()))['x'])))
 
-        # Show all plots at once
-        plt.show()
+        for obj_id in original_positions:
+            plt.figure()
+            plt.plot(time_axis, original_positions[obj_id]['x'], color='blue', label='Original X')
+            plt.plot(time_axis, original_positions[obj_id]['y'], color='blue', linestyle='--', label='Original Y')
+            plt.plot(time_axis, noisy_positions[obj_id]['x'], color='green', label='Noisy (Corrupted) X')
+            plt.plot(time_axis, noisy_positions[obj_id]['y'], color='green', linestyle='--',
+                     label='Noisy (Corrupted) Y')
+            plt.plot(time_axis, filtered_positions[obj_id]['x'], color='red', label='Filtered X')
+            plt.plot(time_axis, filtered_positions[obj_id]['y'], color='red', linestyle='--', label='Filtered Y')
+            plt.xlabel('Time (frame number)')
+            plt.ylabel('Position')
+            plt.legend()
+            plt.title(f'Original, Noisy, and Filtered Results over Time for Object {obj_id}')
+            plt.show()
 
 
 if __name__ == '__main__':
