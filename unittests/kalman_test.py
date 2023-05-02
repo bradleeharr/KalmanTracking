@@ -5,16 +5,16 @@ class TestKalmanTracking(unittest.TestCase):
 
     def test_kalman_tracking(self):
         # Test data
-        annotations = [
-            (0, 1, 50, 50, 20, 20, 'object_class', 'species', 0, 0),
-            (1, 1, 52, 53, 20, 20, 'object_class', 'species', 0, 0),
-            (2, 1, 54, 56, 20, 20, 'object_class', 'species', 0, 0),
-            (0, 2, 80, 80, 30, 30, 'object_class', 'species', 0, 0),
-            (1, 2, 81, 82, 30, 30, 'object_class', 'species', 0, 0),
-        ]
+        annotations = np.asarray([
+            (0, 1, 50, 50, 20, 20, 0, 1, 0, 0),
+            (1, 1, 52, 53, 20, 20, 0, 1, 0, 0),
+            (2, 1, 54, 56, 20, 20, 0, 1, 0, 0),
+            (0, 2, 80, 80, 30, 30, 0, 1, 0, 0),
+            (1, 2, 81, 82, 30, 30, 0, 1, 0, 0),
+        ])
 
         # Run the kalman_tracking function
-        results = kalman_tracking(annotations)
+        results = kalman_tracking(annotations, 'acceleration')
 
         # Check if the number of output rows is the same as the input
         self.assertEqual(len(results), len(annotations))

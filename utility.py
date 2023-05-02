@@ -13,7 +13,7 @@ def read_annotations_from_csv(file_path):
             frame_number, obj_id, x, y, w, h, obj_class, species, occluded, noisy_frame = map(int, row)
             annotation = (frame_number, obj_id, x, y, w, h, obj_class, species, occluded, noisy_frame)
             annotations.append(annotation)
-    return annotations
+    return np.asarray(annotations)
 
 
 def get_csv_files_in_folder(folder_path):
@@ -22,20 +22,20 @@ def get_csv_files_in_folder(folder_path):
 
 
 # Noisify annotation data to test tracking probability
-def noisify_data(annotations, noise_probability=0.1, noise_length=5, noise_type='gaussian'):
+def noisify_data(annotations, noise_std=2, noise_length=5, noise_type='gaussian'):
     noisy_annotations = []
     noise_counter = 0
 
     if noise_type == 'gaussian':
         for ann in annotations:
             noisy_ann = list(ann)
-            noise = np.random.normal(0, 25, 2)
+            noise = np.random.normal(0, noise_std, 2)
             noisy_ann[2:4] = np.add(noisy_ann[2:4], noise)
             noisy_annotations.append(tuple(noisy_ann))
     elif noise_type == 'nonlinear gaussian':
         for ann in annotations:
-            if random.random() < noise_probability and noise_counter == 0:
-                noise_counter = noise_length
+            #if random.random() < noise_probability and noise_counter == 0:
+            #    noise_counter = noise_length
 
             if noise_counter > 0:
                 noisy_ann = list(ann)
