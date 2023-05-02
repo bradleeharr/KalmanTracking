@@ -10,7 +10,7 @@ def read_annotations_from_csv(file_path):
     with open(file_path, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for row in reader:
-            frame_number, obj_id, x, y, w, h, obj_class, species, occluded, noisy_frame = map(int, row)
+            frame_number, obj_id, x, y, w, h, obj_class, species, occluded, noisy_frame = [float(val) if val else 0 for val in row]
             annotation = (frame_number, obj_id, x, y, w, h, obj_class, species, occluded, noisy_frame)
             annotations.append(annotation)
     return np.asarray(annotations)
