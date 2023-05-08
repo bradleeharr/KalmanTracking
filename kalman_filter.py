@@ -1,143 +1,201 @@
+import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 import pylab as pl
+from math import sqrt
 
 from utility import *
-from collections import defaultdict
-from numpy import ma
+from plotting import *
 
 from pykalman import KalmanFilter
+from filterpy.kalman import KalmanFilter
+from filterpy.kalman import ExtendedKalmanFilter
+from scipy.optimize import linear_sum_assignment
 
 
-# def init_kalman_filter(obj_id, initial_state, configuration='position'):
-def init_kalman_filter(obj_id, min_x, min_y, width, height, configuration='position'):
-    if configuration == 'position':
-        transition_matrices = np.eye(4)
-        dim = 4
-    elif configuration == 'velocity':
-        transition_matrices = np.array([[1, 0, 0, 0, 1, 0],
-                                        [0, 1, 0, 0, 0, 1],
-                                        [0, 0, 1, 0, 0, 0],
-                                        [0, 0, 0, 1, 0, 0],
-                                        [0, 0, 0, 0, 1, 0],
-                                        [0, 0, 0, 0, 0, 1]])
-        dim = 6
-        t_cov, o_cov, initial_cov = (0, 0, 0)
-    elif configuration == 'acceleration':
-        transition_matrices = np.array([[1, 0, 0, 0, 1, 0, 0.5, 0],
-                                        [0, 1, 0, 0, 0, 1, 0, 0.5],
-                                        [0, 0, 1, 0, 0, 0, 0, 0],
-                                        [0, 0, 0, 1, 0, 0, 0, 0],
-                                        [0, 0, 0, 0, 1, 0, 1, 0],
-                                        [0, 0, 0, 0, 0, 1, 0, 1],
-                                        [0, 0, 0, 0, 0, 0, 1, 0],
-                                        [0, 0, 0, 0, 0, 0, 0, 1]])
-        dim = 8
-        t_cov, o_cov, initial_cov = (10, 100, 25)
-        t_cov, o_cov, initial_cov = (40, 500, 100)
-    else:
-        raise ValueError("Invalid Kalman Filter configuration. Needs to be 'position' or 'velocity'.")
+def hx(x):
+    """ compute measurement for slant range that
+    would correspond to state x.
+    """
 
-    initial_state = np.zeros(dim)
-    initial_state[:4] = [min_x, min_y, width, height]
-    observation_matrix = np.eye(dim)[:4]
-
-    kf = KalmanFilter(transition_matrices=transition_matrices,
-                      observation_matrices=observation_matrix,
-                      initial_state_mean=initial_state,
-                      transition_covariance=40 * np.eye(dim),
-                      observation_covariance=500 * np.eye(4),
-                      initial_state_covariance=100 * np.eye(dim))
-
-    return kf, initial_state
+    return (x[0] ** 2 + x[2] ** 2) ** 0.5
 
 
-def kalman_tracking(annotations, configuration='velocity'):
-    # Store Measurements in a Masked Array
+def HJacobian_at(x):
+    """ compute Jacobian of H matrix at x """
+
+    horiz_dist = x[0]
+    altitude = x[2]
+    denom = sqrt(horiz_dist ** 2 + altitude ** 2)
+    return np.array([[horiz_dist / denom, 0., altitude / denom]])
+
+
+def extended_kalman_tracking(annotations, model='Velocity', plot=True):
     max_number_frames = int(np.max(annotations.T[0]) + 1)
-    # Each measurement has shape 4, x,y,w,h
-    shape = (max_number_frames, 2)
-    measurements = np.zeros(shape)
-    mask = np.ones(shape, dtype=bool)
-    measurements = np.ma.masked_array(measurements, mask)
-    # Go through every annotation for a specific object id
-    print(annotations[0,1])
-    target_obj_id = annotations[0,1]
-    for frame_id, obj_id, min_x, min_y, width, height, obj_class, species, occluded, noisy_frame in annotations:
-        if obj_id == target_obj_id:
-            measurements[int(frame_id)] = [min_x, min_y]
-    measurements[100:150] = ma.masked
-    print(f"Debug: Measurements for obj id 1 {measurements}")
+    measurements = mask_measurements(annotations)
+
+    ekf = ExtendedKalmanFilter(dim_x=4, dim_z=2)
+    ekf.x = measurements[0]
+    dt = 0.05
+    ekf.F = np.eye(3) + np.array([[0, 1, 0],
+                                  [0, 0, 0],
+                                  [0, 0, 0]]) * dt
+    for z in measurements[1:]:
+        ekf.update(np.array[z], HJacobian_at, hx)
+        ekf.predict()
+
+    # transition_matrices=transition_matrices, n_dim_obs=2)
+    ekf = ekf.em(measurements, n_iter=15)
+    (filtered_state_means, filtered_state_covariances) = ekf.filter(measurements)
+    print(f"Debug: Filtered State means for obj id 1 {filtered_state_means}")
+    print('fitted model: {0}'.format(ekf))
+    plot_means_and_smoothed_and_measurements(filtered_state_means, measurements, max_number_frames, model=model)
+
+    pl.show()
+
+
+def get_transition_matrix(model):
     Δt = 1
     a = 0.5 * Δt ** 2
-    if configuration == 'velocity':
+    if model == 'Velocity':
         transition_matrices = np.array([[1, 0, Δt, 0],
                                         [0, 1, 0, Δt],
                                         [0, 0, 1, 0],
                                         [0, 0, 0, 1]])
-    elif configuration == 'acceleration':
+    elif model == 'Acceleration':
         transition_matrices = np.array([[1, 0, Δt, 0, a, 0],
                                         [0, 1, 0, Δt, 0, a],
                                         [0, 0, 1, 0, Δt, 0],
                                         [0, 0, 0, 1, 0, Δt],
                                         [0, 0, 0, 0, 1, 0],
                                         [0, 0, 0, 0, 0, 1]])
-    kf = KalmanFilter(transition_matrices=transition_matrices, n_dim_obs=2)
-    kf = kf.em(measurements, n_iter=15)
-    (filtered_state_means, filtered_state_covariances) = kf.filter(measurements)
-    print(f"Debug: Filtered State means for obj id 1 {filtered_state_means}")
-
-    #states_pred = kf.em(measurements).smooth(measurements)[0]
-    print('fitted model: {0}'.format(kf))
-
-    pl.figure(figsize=(8, 4))
-    x = np.linspace(1, max_number_frames, max_number_frames)
-    pl.subplot(2, 1, 1)
-    obs_scatter = pl.scatter(x, measurements.T[0], marker='x', color='b',
-                             label='observations')
-    position_line = pl.plot(x, filtered_state_means[:, 0],
-                            linestyle='-', marker='.', color='r',
-                            label='position est.', alpha=0.5)
-    pl.legend(loc='lower right')
-    pl.title('Kalman Filtered Position for Elephant 1')
-    pl.xlim(xmin=0, xmax=x.max())
-    # pl.ylim(ymin=measurements.T[0].max()-200, ymax=measurements.T[0].max()+10)
-    pl.ylabel('Distance')
-    pl.subplot(2, 1, 2)
-    velocity_line = pl.plot(x, filtered_state_means[:, 1],
-                            linestyle='-', marker='.', color='g',
-                            label='velocity est.', alpha=0.5)
-    plt.ylim(ymin=200, ymax=400)
-    pl.xlabel('Frame Number')
-    pl.legend(loc='lower right')
-    pl.title('Modeled Velocity for Elephant 1')
-
-    pl.show()
+    else:
+        print("Configuration should be 'Velocity' or 'Acceleration'")
+    return transition_matrices
 
 
-# Extract the original, noisy, and filtered x, y positions for each object
-def extract_positions(annotations):
-    positions = defaultdict(lambda: {'x': [], 'y': []})
-    for ann in annotations:
-        obj_id = ann[1]
-        x = ann[2]
-        y = ann[3]
-        positions[obj_id]['x'].append(x)
-        positions[obj_id]['y'].append(y)
-    return positions
+def kalman_tracking(annotations, model='Velocity', plot=True):
+    max_number_frames = int(np.max(annotations.T[0]) + 1)
+    obj_ids = np.unique(annotations[:, 1])
+    transition_matrices = get_transition_matrix(model)
+    measurements = {}
+    kalman_filters = {}
+    smoothed_state_means = {}
+    filtered_state_means = {}
+    for obj_id in obj_ids:
+        measurements[obj_id] = mask_measurements(annotations, obj_id)
+        print("SHAPE MEASUREMENTS",np.shape(measurements[obj_id]))
+        kalman_filters[obj_id] = KalmanFilter(transition_matrices=transition_matrices, n_dim_obs=2).em(
+            measurements[obj_id][0:50], n_iter=15)
+
+        (filtered_state_means[obj_id], filtered_state_covariances) = kalman_filters[obj_id].filter(measurements[obj_id])
+        print(f"Debug: Filtered State means for obj id {obj_id}: {filtered_state_means[obj_id]}")
+        smoothed_state_means[obj_id] = kalman_filters[obj_id].em(measurements[obj_id]).smooth(measurements[obj_id])[0]
+        print("Smoothed State Means:", smoothed_state_means[obj_id])
+        print('fitted model: {0}'.format(kalman_filters[obj_id]))
+        if plot: plot_means_and_smoothed_and_measurements(filtered_state_means[obj_id], smoothed_state_means[obj_id],
+                                                          measurements[obj_id],
+                                                          max_number_frames, model=model, obj_id=obj_id)
+    return measurements, filtered_state_means, smoothed_state_means
+
+# function to compute the cost matrix given measurements and predictions
+def compute_cost_matrix(detections, predicted_positions):
+    cost_matrix = np.zeros((len(detections), len(predicted_positions)))
+    for i, detection in enumerate(detections):
+        for j, prediction in enumerate(predicted_positions):
+            cost_matrix[i, j] = np.linalg.norm(detection - prediction)
+    return cost_matrix
+
+import numpy as np
+from filterpy.kalman import KalmanFilter
+from scipy.optimize import linear_sum_assignment
+
+def iou(bbox1, bbox2):
+    x1, y1, x2, y2 = bbox1
+    X1, Y1, X2, Y2 = bbox2
+    x_intersection = max(0, min(x2, X2) - max(x1, X1))
+    y_intersection = max(0, min(y2, Y2) - max(y1, Y1))
+    intersection_area = x_intersection * y_intersection
+    bbox1_area = (x2 - x1) * (y2 - y1)
+    bbox2_area = (X2 - X1) * (Y2 - Y1)
+    union_area = bbox1_area + bbox2_area - intersection_area
+    return intersection_area / union_area
+
+
+def kalman_tracking_2(annotations, model='Velocity', n_init_meas=10, plot=True):
+    max_number_frames = int(np.max(annotations.T[0]) + 1)
+    transition_matrices = get_transition_matrix(model)
+    measurements = {}
+    kalman_filters = {}
+    smoothed_state_means = {}
+    filtered_state_means = {}
+    n_dim_state = transition_matrices.shape[0]
+    frames, max_objects = np.unique(annotations[:,0], return_counts=True)
+    print(np.unique(annotations[:,0], return_counts=True))
+    print("MAX OBJECTS: ", max_objects)
+
+    measurements = annotations[:, 2:3]
+
+    """num_objects = 0
+    if not kalman_filters:
+        kf = KalmanFilter(transition_matrices=transition_matrices, n_dim_obs=2, n_dim_state=n_dim_state).em(np.array(measurements), n_iter=15)
+        obj_id = len(kalman_filters)
+        kalman_filters[obj_id] = kf
+        (filtered_state_means[obj_id], _) = kf.filter(np.array[measurements[obj_id])
+        smoothed_state_means[obj_id] = kf.smooth(measurements[obj_id])
+    else:
+        predictions = np.array([kf.transition_matrices @ state[-1] for kf, state in filtered_state_means.items()])
+        cost_matrix = compute_cost_matrix(current_measurements, predictions)
+        assignments = linear_sum_assignment(cost_matrix)
+
+        for i, j in assignments:
+            obj_id = j
+            meas = current_measurements[i]
+            kf = kalman_filters[obj_id]
+            measurements[obj_id].append(meas)
+            filtered_mean, _ = kf.filter_update(filtered_state_means[obj_id][-1], observation=meas)
+            filtered_state_means[obj_id] = np.vstack([filtered_state_means[obj_id], filtered_mean])
+            smoothed_mean = kf.smooth(np.vstack([measurements[obj_id], meas]))[0][-1]
+            smoothed_state_means[obj_id] = np.vstack([smoothed_state_means[obj_id], smoothed_mean])
+
+            if plot:
+                plot_means_and_smoothed_and_measurements(filtered_state_means[obj_id],
+                                                         smoothed_state_means[obj_id],
+                                                         np.array(measurements[obj_id]),
+                                                         max_number_frames, model=model, obj_id=obj_id)
+
+    return measurements, filtered_state_means, smoothed_state_means
+    """
 
 
 def main():
-    annotations_dir = r'TrainReal/annotations'
-    #annotations_dir = r'C:\Users\bubba\PycharmProjects\MultiBandIRTracking\TRI_A\detections'
-    configuration = 'velocity'
+    mode = 'TRICLOBS'
+    if mode == 'BIRDSAI':
+        annotations_dir = r'TrainReal/annotations'
+        tracking_function = kalman_tracking
+    elif mode == 'TRICLOBS':
+        annotations_dir = r'TRI_A/detections'
+        tracking_function = kalman_tracking_2
+
     # annotation format frame_number,object_id,x,y,w,h,class,species,occlusion,noise
     csv_files = get_csv_files_in_folder(annotations_dir)
-    for file in csv_files:
+    imgdirs = []
+    for idx, file in enumerate(csv_files):
         print("Found csv file :", os.path.basename(file))
+        if mode == 'BIRDSAI': imgdirs.append(r'TrainReal/images/' + os.path.basename(file)[:-4])
+        elif mode == 'TRICLOBS':
+            filename = r'TRI_A/' + os.path.basename(file)[11:-4] + '/frames'
+            imgdirs.append(filename)
+            print(f'added file to imgdir {filename}')
     for idx, csv_file in enumerate(csv_files):
         original_annotations = read_annotations_from_csv(csv_file)
-        filtered_annotations = kalman_tracking(original_annotations, configuration)
+        obj_ids = np.unique(original_annotations[:, 1])
+        image_paths = load_image_paths(imgdirs[idx])
+        for model in ['Velocity', 'Acceleration']:
+            org_meas, filtered_meas, smoothed_meas = tracking_function(original_annotations, model, plot=False)
+            print("Display Video:")
+            display_annotated_video(image_paths, obj_ids, org_meas, filtered_meas, smoothed_meas, model=model)
+
+        # mse = np.mean((ground_truth - filtered_state_means) ** 2)
 
 
 if __name__ == '__main__':

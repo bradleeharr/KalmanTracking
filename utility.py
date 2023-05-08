@@ -3,8 +3,16 @@ import os
 import glob
 import random
 import numpy as np
+from numpy import ma
+import cv2
+
+# Gets all the csv files in a folder and returns their filepaths
+def get_csv_files_in_folder(folder_path):
+    csv_files = glob.glob(os.path.join(folder_path, '*.csv'))
+    return csv_files
 
 
+# Reads the annotations and returns a numpy array for all annotations in a given csv file
 def read_annotations_from_csv(file_path):
     annotations = []
     with open(file_path, 'r') as csvfile:
@@ -16,35 +24,78 @@ def read_annotations_from_csv(file_path):
     return np.asarray(annotations)
 
 
-def get_csv_files_in_folder(folder_path):
-    csv_files = glob.glob(os.path.join(folder_path, '*.csv'))
-    return csv_files
+# Takes annotations and for a specific target object gets the measurements and adds a mask to the array with any frames
+# that are not observed
+def mask_measurements(annotations, target_obj_id=1, dim_obs=2):
+    # Store Measurements in a Masked Array
+    max_number_frames = int(np.max(annotations.T[0]) + 1)
+    # Each measurement has shape 4, x,y,w,h
+    shape = (max_number_frames, dim_obs)
+    measurements = np.zeros(shape)
+    mask = np.ones(shape, dtype=bool)
+    measurements = np.ma.masked_array(measurements, mask)
+    # Go through every annotation for a specific object id
+    for frame_id, obj_id, min_x, min_y, width, height, obj_class, species, occluded, noisy_frame in annotations:
+        if obj_id == target_obj_id:
+            measurements[int(frame_id)] = [min_x, min_y]
+    measurements[100:150] = ma.masked
+    print(f"Debug: Measurements for obj id 1 {measurements}")
+
+    return measurements
+
+# Loads all the images paths in a directory
+def load_image_paths(directory):
+    image_paths = []
+    for filename in os.listdir(directory):
+        if filename.endswith(".png") or filename.endswith(".jpg") or filename.endswith(".jpeg") or filename.endswith(".bmp"):
+            image_paths.append(os.path.join(directory, filename))
+    return sorted(image_paths)
 
 
-# Noisify annotation data to test tracking probability
-def noisify_data(annotations, noise_std=2, noise_length=5, noise_type='gaussian'):
-    noisy_annotations = []
-    noise_counter = 0
+# Displays the annotated video with the original, filtered, and smoothed measurements for multiple objects
+def display_annotated_video(image_paths, obj_ids, org_meas, filtered_meas, smoothed_meas, model="Velocity'"):
+    for idx2, image_path in enumerate(image_paths):
+        frame_delay = 10
+        w = 20
+        h = 20
+        w_smoothed = 25
+        h_smoothed = 25
 
-    if noise_type == 'gaussian':
-        for ann in annotations:
-            noisy_ann = list(ann)
-            noise = np.random.normal(0, noise_std, 2)
-            noisy_ann[2:4] = np.add(noisy_ann[2:4], noise)
-            noisy_annotations.append(tuple(noisy_ann))
-    elif noise_type == 'nonlinear gaussian':
-        for ann in annotations:
-            #if random.random() < noise_probability and noise_counter == 0:
-            #    noise_counter = noise_length
+        frame = cv2.imread(image_path)
+        # Add legend
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 0.4
+        font_thickness = 1
+        cv2.putText(frame, "Black: Original", (10, 30), font, font_scale, (0, 0, 0), font_thickness)
+        cv2.putText(frame, "Blue: Filtered", (10, 45), font, font_scale, (255, 0, 0), font_thickness)
+        cv2.putText(frame, "Red: Smoothed", (10, 60), font, font_scale, (0, 0, 255), font_thickness)
+        cv2.putText(frame, f"Model: {model}", (10,75), font, font_scale, (255,255,255), font_thickness)
+        for obj_id in obj_ids:
+            try:
+                filtered_x = filtered_meas[obj_id][idx2, 0]
+                filtered_y = filtered_meas[obj_id][idx2, 1]
+                smoothed_x = smoothed_meas[obj_id][idx2, 0]
+                smoothed_y = smoothed_meas[obj_id][idx2, 1]
+                org_x, org_y = org_meas[obj_id][idx2]
+            except:
+                print(len(org_meas))
+                print(idx2)
+                org_x, org_y = (0, 0)
 
-            if noise_counter > 0:
-                noisy_ann = list(ann)
-                # Add random noise to x, y, width, and height
-                noise = np.random.normal(0, 50, 4)
-                noisy_ann[2:6] = np.add(noisy_ann[2:6], noise)
-                noisy_annotations.append(tuple(noisy_ann))
-                noise_counter -= 1
-            else:
-                noisy_annotations.append(ann)
+            # Draw bounding boxes for original, filtered, and smoothed positions
+            if not (np.ma.is_masked(org_x) or np.ma.is_masked(org_y)):
+                org_top_left = (int(org_x - w / 2), int(org_y - h / 2))
+                org_bottom_right = (int(org_x + w / 2), int(org_y + h / 2))
+                cv2.rectangle(frame, org_top_left, org_bottom_right, (0, 0, 0), 8)
 
-    return noisy_annotations
+            filtered_top_left = (int(filtered_x - w / 2), int(filtered_y - h / 2))
+            filtered_bottom_right = (int(filtered_x + w / 2), int(filtered_y + h / 2))
+            cv2.rectangle(frame, filtered_top_left, filtered_bottom_right, (255, 0, 0), 2)
+
+            smoothed_top_left = (int(smoothed_x - w_smoothed / 2), int(smoothed_y - h_smoothed / 2))
+            smoothed_bottom_right = (int(smoothed_x + w_smoothed / 2), int(smoothed_y + h_smoothed / 2))
+            cv2.rectangle(frame, smoothed_top_left, smoothed_bottom_right, (0, 0, 255), 2)
+
+        cv2.imshow("Images as Video", frame)
+        if cv2.waitKey(frame_delay) & 0xFF == ord("q"):
+            break
