@@ -74,13 +74,20 @@ def display_annotated_video(image_paths, obj_ids, org_meas, filtered_meas, smoot
             try:
                 filtered_x = filtered_meas[obj_id][idx2, 0]
                 filtered_y = filtered_meas[obj_id][idx2, 1]
+            except:
+                filtered_x, filtered_y = (0,0)
+                print("Filtered x/y not found. Setting (0,0). Length orgmeas = ", len(org_meas), "index=",idx2)
+            try:
                 smoothed_x = smoothed_meas[obj_id][idx2, 0]
                 smoothed_y = smoothed_meas[obj_id][idx2, 1]
+            except:
+                smoothed_x, smoothed_y = (0,0)
+                print("Smoothed x/y not found. Setting (0,0). Length orgmeas = ", len(org_meas), "index=",idx2)
+            try:
                 org_x, org_y = org_meas[obj_id][idx2]
             except:
-                print(len(org_meas))
-                print(idx2)
                 org_x, org_y = (0, 0)
+                print("Smoothed x/y not found. Setting (0,0). Length orgmeas = ", len(org_meas), "index=", idx2)
 
             # Draw bounding boxes for original, filtered, and smoothed positions
             if not (np.ma.is_masked(org_x) or np.ma.is_masked(org_y)):

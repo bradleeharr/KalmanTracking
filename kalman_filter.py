@@ -5,12 +5,14 @@ from math import sqrt
 
 from utility import *
 from plotting import *
+from annotations_test import *
 
 from pykalman import KalmanFilter
-from filterpy.kalman import KalmanFilter
-from filterpy.kalman import ExtendedKalmanFilter
+#%from filterpy.kalman import KalmanFilter
+#from filterpy.kalman import ExtendedKalmanFilter
 from scipy.optimize import linear_sum_assignment
-
+import numpy as np
+from scipy.optimize import linear_sum_assignment
 
 def hx(x):
     """ compute measurement for slant range that
@@ -28,7 +30,7 @@ def HJacobian_at(x):
     denom = sqrt(horiz_dist ** 2 + altitude ** 2)
     return np.array([[horiz_dist / denom, 0., altitude / denom]])
 
-
+"""
 def extended_kalman_tracking(annotations, model='Velocity', plot=True):
     max_number_frames = int(np.max(annotations.T[0]) + 1)
     measurements = mask_measurements(annotations)
@@ -51,7 +53,7 @@ def extended_kalman_tracking(annotations, model='Velocity', plot=True):
     plot_means_and_smoothed_and_measurements(filtered_state_means, measurements, max_number_frames, model=model)
 
     pl.show()
-
+"""
 
 def get_transition_matrix(model):
     Δt = 1
@@ -105,9 +107,7 @@ def compute_cost_matrix(detections, predicted_positions):
             cost_matrix[i, j] = np.linalg.norm(detection - prediction)
     return cost_matrix
 
-import numpy as np
-from filterpy.kalman import KalmanFilter
-from scipy.optimize import linear_sum_assignment
+
 
 def iou(bbox1, bbox2):
     x1, y1, x2, y2 = bbox1
@@ -174,7 +174,7 @@ def main():
         tracking_function = kalman_tracking
     elif mode == 'TRICLOBS':
         annotations_dir = r'TRI_A/detections'
-        tracking_function = kalman_tracking_2
+        tracking_function = kalman_tracking
 
     # annotation format frame_number,object_id,x,y,w,h,class,species,occlusion,noise
     csv_files = get_csv_files_in_folder(annotations_dir)
@@ -188,10 +188,12 @@ def main():
             print(f'added file to imgdir {filename}')
     for idx, csv_file in enumerate(csv_files):
         original_annotations = read_annotations_from_csv(csv_file)
+        original_annotations = get_objects(original_annotations);
         obj_ids = np.unique(original_annotations[:, 1])
         image_paths = load_image_paths(imgdirs[idx])
         for model in ['Velocity', 'Acceleration']:
             org_meas, filtered_meas, smoothed_meas = tracking_function(original_annotations, model, plot=False)
+            print(org_meas)
             print("Display Video:")
             display_annotated_video(image_paths, obj_ids, org_meas, filtered_meas, smoothed_meas, model=model)
 
