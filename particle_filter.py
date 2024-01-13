@@ -1,46 +1,29 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
-# Simulate a moving square
-def moving_square(x, t):
-    return x + t
+class ParticleFilter:
 
-# Particle Filter implementation
-def particle_filter(y, n_particles, n_iterations):
-    particles = np.random.uniform(0, 100, n_particles)
-    weights = np.ones(n_particles) / n_particles
-    estimates = []
+    def __init__(self, n_particles, state_dim, measurement_dim):
+        self.n_particles = n_particles
+        self.state_dim = state_dim
+        self.measurement_dim = measurement_dim
+        self.particles = np.random.uniform(size=(n_particles, state_dim))
+        self.weights = np.ones(n_particles) / n_particles
 
-    for t in range(n_iterations):
-        # Propagate particles
-        particles = moving_square(particles, 1) + np.random.normal(0, 1, n_particles)
+    def predict(self, motion_model, noise_covariance):
+        for i in range(self.n_particles):
+            self.particles[i] = motion_model(self.particles[i])
+            self.particles[i] += np.random.multivariate_normal(np.zeros(self.state_dim), noise_covariance)
 
-        # Update weights based on the likelihood of each particle
-        weights = np.exp(-0.5 * ((y[t] - particles) ** 2))  # Gaussian likelihood
-        weights /= np.sum(weights)
+    def update(self, measurement, likelihood_function):
+        for i in range(self.n_particles):
+            self.weights[i] = likelihood_function(measurement, self.particles[i])
 
-        # Resample particles
-        indices = np.random.choice(np.arange(n_particles), size=n_particles, p=weights)
-        particles = particles[indices]
+        self.weights /= np.sum(self.weights)
 
-        # Compute the estimate as the mean of the particles
-        estimates.append(np.mean(particles))
+    def resample(self):
+        indices = np.random.choice(np.arange(self.n_particles), size=self.n_particles, p=self.weights)
+        self.particles = self.particles[indices]
+        self.weights = np.ones(self.n_particles) / self.n_particles
 
-    return estimates
-
-# Generate the true trajectory and observations with noise
-n_iterations = 50
-true_trajectory = [moving_square(10, t) for t in range(n_iterations)]
-observations = [y + np.random.normal(0, 1) for y in true_trajectory]
-
-# Apply Particle Filter
-n_particles = 1000
-estimates = particle_filter(observations, n_particles, n_iterations)
-
-# Plot the results
-plt.figure()
-plt.plot(true_trajectory, label='True trajectory')
-plt.plot(observations, 'o', label='Noisy observations')
-plt.plot(estimates, label='Particle Filter estimates')
-plt.legend()
-plt.show()
+    def estimate(self):
+        return np.mean(self.particles, axis=0)

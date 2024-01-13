@@ -1,5 +1,5 @@
 import unittest
-from kalman_filter import *
+from tracking_kalman_filter import *
 
 class TestKalmanTracking(unittest.TestCase):
 
@@ -14,7 +14,7 @@ class TestKalmanTracking(unittest.TestCase):
         ])
 
         # Run the kalman_tracking function
-        results = kalman_tracking(annotations, 'acceleration')
+        results = kalman_tracking(annotations, 'Acceleration')
 
         # Check if the number of output rows is the same as the input
         self.assertEqual(len(results), len(annotations))

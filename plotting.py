@@ -1,6 +1,7 @@
 import pylab as pl
 import numpy as np
 
+
 def plot_means_and_smoothed_and_measurements(filtered_state_means, smoothed_state_means, measurements,
                                              max_number_frames, model='velocity', obj_id='1'):
     pl.figure(figsize=(12, 7))

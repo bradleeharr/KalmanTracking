@@ -2,7 +2,7 @@ import cv2
 import os
 import glob
 
-image_directory = "TrainReal/output-imgs"
+image_directory = r"C:\Users\bubba\OneDrive\Documents\MATLAB\CAFs"
 image_files = glob.glob(os.path.join(image_directory, "*"))
 image_files.sort()
 
