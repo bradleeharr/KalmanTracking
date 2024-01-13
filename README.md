@@ -7,7 +7,7 @@ Video tracking using kalman filter and smoothing methods
 * Download [TRICLOBS](https://figshare.com/articles/dataset/The_TRICLOBS_Dynamic_Multiband_Image_Dataset/3206887) dataset 
 
 * Configure filepaths
-* Run kalman_filter.py
+* Run tracking_kalman_filter.py
 
 # Scenarios
 I looked at two different scenarios using two different datasets. 
