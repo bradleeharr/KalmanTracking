@@ -1,10 +1,9 @@
 import csv
 import os
 import glob
-import random
 import numpy as np
-from numpy import ma
 import cv2
+
 
 # Gets all the csv files in a folder and returns their filepaths
 def get_csv_files_in_folder(folder_path):
@@ -51,7 +50,6 @@ def load_image_paths(directory):
         if filename.endswith(".png") or filename.endswith(".jpg") or filename.endswith(".jpeg") or filename.endswith(".bmp"):
             image_paths.append(os.path.join(directory, filename))
     return sorted(image_paths)
-
 
 
 # Displays the annotated video with the original, filtered, and smoothed measurements for multiple objects

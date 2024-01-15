@@ -1,18 +1,10 @@
-import cv2
-import numpy as np
-import pylab as pl
-from math import sqrt
-
-from utility import *
 from plotting import *
-from annotations_test import *
+from annotations import *
 
 from pykalman import KalmanFilter
-#%from filterpy.kalman import KalmanFilter
-#from filterpy.kalman import ExtendedKalmanFilter
-from scipy.optimize import linear_sum_assignment
+
 import numpy as np
-from scipy.optimize import linear_sum_assignment
+
 
 def get_transition_matrix(model):
     Δt = 1
@@ -32,6 +24,7 @@ def get_transition_matrix(model):
     else:
         print("Configuration should be 'Velocity' or 'Acceleration'")
     return transition_matrices
+
 
 def kalman_tracking(annotations, model='Velocity', plot=True):
     max_number_frames = int(np.max(annotations.T[0]) + 1)
@@ -77,8 +70,9 @@ def kalman_tracking(annotations, model='Velocity', plot=True):
     print("DIFFERENCE FILTERED/SMOOTHED MSES: ", mses)
     return measurements, filtered_state_means, smoothed_state_means
 
+
 def main():
-    mode = 'TRICLOBS'
+    mode = 'BIRDSAI'
     if mode == 'BIRDSAI':
         annotations_dir = r'TrainReal/annotations'
     elif mode == 'TRICLOBS':
