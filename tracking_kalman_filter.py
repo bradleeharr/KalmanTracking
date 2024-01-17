@@ -71,8 +71,7 @@ def kalman_tracking(annotations, model='Velocity', plot=True):
     return measurements, filtered_state_means, smoothed_state_means
 
 
-def main():
-    mode = 'BIRDSAI'
+def run_filter(mode, plotting=False):
     if mode == 'BIRDSAI':
         annotations_dir = r'TrainReal/annotations'
     elif mode == 'TRICLOBS':
@@ -95,7 +94,7 @@ def main():
         obj_ids = np.unique(original_annotations[:, 1])
         image_paths = load_image_paths(imgdirs[idx])
         for model in ['Velocity', 'Acceleration']:
-            org_meas, filtered_meas, smoothed_meas = kalman_tracking(original_annotations, model, plot=True)
+            org_meas, filtered_meas, smoothed_meas = kalman_tracking(original_annotations, model, plot=plotting)
             print(org_meas)
             print("Display Video:")
             display_annotated_video(image_paths, obj_ids, org_meas, filtered_meas, smoothed_meas, model=model)
@@ -104,4 +103,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    dataset = 'BIRDSAI'
+    plotting = False
+    run_filter(dataset, plotting)

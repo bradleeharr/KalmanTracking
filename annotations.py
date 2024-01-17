@@ -12,7 +12,6 @@ def get_objects(data, min_detections=60):
     # Run through the frames
     frame_numbers, counts = np.unique(data[:, 0], return_counts=True)
     num_frames = len(frame_numbers)
-    max_objects = max(counts)
 
     for i in range(num_frames):
         current_frame = frame_numbers[i]
@@ -103,7 +102,6 @@ def get_objects(data, min_detections=60):
                 # Update the data array with the reassigned ID
                 detection[1] = obj_id
                 data = np.vstack([data, detection])
-
 
     # Display the data with assigned IDs as a table
     headers = ["Frame", "ID", "X", "Y", "Width", "Height", "Obj_Type", "N/A", "N/A", "Confidence"]
