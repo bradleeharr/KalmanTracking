@@ -1,9 +1,5 @@
-import numpy as np
-import csv
 from utility import *
 from tabulate import tabulate
-
-
 
 
 def get_objects(data, min_detections=60):
@@ -16,7 +12,7 @@ def get_objects(data, min_detections=60):
     # Run through the frames
     frame_numbers, counts = np.unique(data[:, 0], return_counts=True)
     num_frames = len(frame_numbers)
-    max_objects = max(counts)
+
     for i in range(num_frames):
         current_frame = frame_numbers[i]
         current_frame_data = data[data[:, 0] == current_frame]
@@ -87,9 +83,6 @@ def get_objects(data, min_detections=60):
         position = np.array([x, y])
         size = np.array([width, height])
 
-        min_distance = float('inf')
-        obj_id = -1
-
         candidate_frame_data = data[data[:, 0] == frame]
 
         # Find closest object in candidate frame with the same object type
@@ -110,7 +103,6 @@ def get_objects(data, min_detections=60):
                 detection[1] = obj_id
                 data = np.vstack([data, detection])
 
-
     # Display the data with assigned IDs as a table
     headers = ["Frame", "ID", "X", "Y", "Width", "Height", "Obj_Type", "N/A", "N/A", "Confidence"]
     print(tabulate(data, headers=headers))
@@ -119,13 +111,13 @@ def get_objects(data, min_detections=60):
     return data
 
 
-
-annotations_dir = r'TRI_A/detections'
-csv_files = get_csv_files_in_folder(annotations_dir)
-for csv_file in csv_files:
-    data = read_annotations_from_csv(csv_file)
-    print(get_objects(data))
-    with open('datafile.csv', 'w', newline='') as csvfile:
-        csv_writer = csv.writer(csvfile)
-        for row in data:
-            csv_writer.writerow(row)
+if __name__ == "__main__":
+    annotations_dir = r'TRI_A/detections'
+    csv_files = get_csv_files_in_folder(annotations_dir)
+    for csv_file in csv_files:
+        data = read_annotations_from_csv(csv_file)
+        print(get_objects(data))
+        with open('datafile.csv', 'w', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            for row in data:
+                csv_writer.writerow(row)

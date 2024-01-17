@@ -1,18 +1,10 @@
-import cv2
-import numpy as np
-import pylab as pl
-from math import sqrt
-
-from utility import *
 from plotting import *
-from annotations_test import *
+from annotations import *
 
 from pykalman import KalmanFilter
-#%from filterpy.kalman import KalmanFilter
-#from filterpy.kalman import ExtendedKalmanFilter
-from scipy.optimize import linear_sum_assignment
+
 import numpy as np
-from scipy.optimize import linear_sum_assignment
+
 
 def get_transition_matrix(model):
     Δt = 1
@@ -32,6 +24,7 @@ def get_transition_matrix(model):
     else:
         print("Configuration should be 'Velocity' or 'Acceleration'")
     return transition_matrices
+
 
 def kalman_tracking(annotations, model='Velocity', plot=True):
     max_number_frames = int(np.max(annotations.T[0]) + 1)
@@ -77,8 +70,8 @@ def kalman_tracking(annotations, model='Velocity', plot=True):
     print("DIFFERENCE FILTERED/SMOOTHED MSES: ", mses)
     return measurements, filtered_state_means, smoothed_state_means
 
-def main():
-    mode = 'TRICLOBS'
+
+def run_filter(mode, plotting=False):
     if mode == 'BIRDSAI':
         annotations_dir = r'TrainReal/annotations'
     elif mode == 'TRICLOBS':
@@ -101,7 +94,7 @@ def main():
         obj_ids = np.unique(original_annotations[:, 1])
         image_paths = load_image_paths(imgdirs[idx])
         for model in ['Velocity', 'Acceleration']:
-            org_meas, filtered_meas, smoothed_meas = kalman_tracking(original_annotations, model, plot=True)
+            org_meas, filtered_meas, smoothed_meas = kalman_tracking(original_annotations, model, plot=plotting)
             print(org_meas)
             print("Display Video:")
             display_annotated_video(image_paths, obj_ids, org_meas, filtered_meas, smoothed_meas, model=model)
@@ -110,4 +103,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    dataset = 'BIRDSAI'
+    plotting = False
+    run_filter(dataset, plotting)
