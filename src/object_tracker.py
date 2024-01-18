@@ -9,8 +9,8 @@ class ObjectTracker:
         self.tracker = cv2.legacy.MultiTracker_create()
         self.initialized = False
 
-    def set_tracker(self, tracker: cv2.legacy.Tracker):
-        self.tracker = tracker;
+    def set_tracker(self, tracker):
+        self.tracker = tracker
 
     def initialize_trackers(self, frame: np.ndarray) -> bool:
         """
