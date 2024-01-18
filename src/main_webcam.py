@@ -1,5 +1,5 @@
-import cv2
 import logging
+import cv2
 from labeling_gui import LabelingGUI
 from object_tracker import ObjectTracker
 
@@ -11,7 +11,7 @@ success, first_frame = cap.read()
 if success:
     labeling_gui = LabelingGUI()
     boxes = labeling_gui.run(first_frame)
-    logging.info("Boxes generated: ", boxes)
+    logging.info("Boxes generated: " + str(boxes))
     tracker = ObjectTracker(boxes)
 
     # IF trackers succesfully iniitalized

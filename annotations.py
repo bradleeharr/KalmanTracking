@@ -1,4 +1,5 @@
 from tabulate import tabulate
+import numpy as np
 
 
 def get_objects(data, min_detections=60):
