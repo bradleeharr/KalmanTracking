@@ -3,6 +3,7 @@ import logging
 import numpy as np
 from typing import List, Tuple
 
+
 class ObjectTracker:
     def __init__(self, boxes: List[Tuple[int, int, int, int]]):
         self.boxes = boxes
@@ -38,4 +39,3 @@ class ObjectTracker:
                 x, y, w, h = [int(v) for v in box]
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         return frame
-

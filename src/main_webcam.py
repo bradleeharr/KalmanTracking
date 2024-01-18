@@ -23,11 +23,10 @@ if success:
 
             frame = tracker.update_tracker(frame)
             cv2.imshow("Tracking", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     else:
         logging.error("Failed to initialize trackers")
-
 
 
 else:
@@ -35,4 +34,3 @@ else:
 
 cap.release()
 cv2.destroyAllWindows()
-
