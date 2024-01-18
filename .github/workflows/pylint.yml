@@ -21,4 +21,5 @@ jobs:
         pip install pylint
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py')
+        pylint --good-names=cv2,np $(git ls-files '*.py')
+
