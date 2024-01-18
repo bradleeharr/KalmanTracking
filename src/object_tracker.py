@@ -3,6 +3,7 @@ import logging
 import numpy as np
 from typing import List, Tuple
 
+
 class ObjectTracker:
     def __init__(self, boxes: List[Tuple[int, int, int, int]]):
         self.boxes = boxes
@@ -23,7 +24,7 @@ class ObjectTracker:
             return False
 
         for box in self.boxes:
-            self.tracker.add(cv2.legacy.TrackerMOSSE_create(), frame, tuple(box))
+            self.tracker.add(cv2.legacy.TrackerMOSSE_create(), frame, tuple(box)) # TODO: Apply and Benchmark OpenCV Trackers
         self.initialized = True
         return True
 
@@ -38,4 +39,3 @@ class ObjectTracker:
                 x, y, w, h = [int(v) for v in box]
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         return frame
-
