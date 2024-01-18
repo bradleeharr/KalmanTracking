@@ -13,8 +13,8 @@ def plot_kalman_filter_results(
     pl.figure(figsize=(12, 7))
     x = np.linspace(1, max_number_frames, max_number_frames)
     pl.subplot(2, 2, 1)
-    x_obs_scatter = pl.scatter(x, measurements.T[0], marker="x", color="b", label="observations")
-    x_position_line = pl.plot(
+    pl.scatter(x, measurements.T[0], marker="x", color="b", label="observations")
+    pl.plot(
         x,
         filtered_state_means[:, 0],
         linestyle="-",
@@ -23,7 +23,7 @@ def plot_kalman_filter_results(
         label="position est.",
         alpha=0.4,
     )
-    x_smoothed_line = pl.plot(
+    pl.plot(
         x,
         smoothed_state_means[:, 0],
         linestyle="-",
@@ -38,8 +38,8 @@ def plot_kalman_filter_results(
     pl.ylabel("X Distance")
 
     pl.subplot(2, 2, 2)
-    y_obs_scatter = pl.scatter(x, measurements.T[1], marker="x", color="b", label="observations")
-    y_position_line = pl.plot(
+    pl.scatter(x, measurements.T[1], marker="x", color="b", label="observations")
+    pl.plot(
         x,
         filtered_state_means[:, 1],
         linestyle="-",
@@ -49,7 +49,7 @@ def plot_kalman_filter_results(
         alpha=0.4,
     )
 
-    y_smoothed_line = pl.plot(
+    pl.plot(
         x,
         smoothed_state_means[:, 1],
         linestyle="-",
@@ -64,7 +64,7 @@ def plot_kalman_filter_results(
     pl.ylabel("Y Distance")
 
     pl.subplot(2, 2, 3)
-    x_velocity_line = pl.plot(
+    pl.plot(
         x,
         filtered_state_means[:, 2],
         linestyle="-",
@@ -73,7 +73,7 @@ def plot_kalman_filter_results(
         label="filter velocity est.",
         alpha=0.4,
     )
-    x_velocity_line = pl.plot(
+    pl.plot(
         x,
         smoothed_state_means[:, 2],
         linestyle="-",
@@ -87,7 +87,7 @@ def plot_kalman_filter_results(
     pl.title(f"Modeled X Velocity using {model} Model - Object {obj_id}")
 
     pl.subplot(2, 2, 4)
-    y_velocity_line = pl.plot(
+    pl.plot(
         x,
         filtered_state_means[:, 3],
         linestyle="-",
@@ -96,7 +96,7 @@ def plot_kalman_filter_results(
         label="velocity est.",
         alpha=0.4,
     )
-    y_velocity_line = pl.plot(
+    pl.plot(
         x,
         smoothed_state_means[:, 3],
         linestyle="-",

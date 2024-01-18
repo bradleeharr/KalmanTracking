@@ -1,8 +1,9 @@
 import logging
 import os
+import requests
+
 from zipfile import ZipFile
 
-import requests
 from tqdm import tqdm
 
 logging.basicConfig(level=logging.INFO)
@@ -38,17 +39,17 @@ def setup_dataset(folder_path: str, zip_file_path: str, url: str):
     :param url: the URL  link to download the file from, if the zip file path is not present.
     """
     if os.path.exists(folder_path):
-        logging.info(f"Folder {folder_path} already exists. Using this directory as the dataset.")
+        logging.info(f"Folder %s already exists. Using this directory as the dataset.", folder_path)
     else:
 
         if zip_file_path[-4:] != ".zip":
             logging.info("Path: " + zip_file_path[-4:] + ". Adding '.zip' to path: ")
             zip_file_path = zip_file_path + ".zip"
         if not os.path.exists(zip_file_path):
-            logging.info(f"Downloading dataset from {url} to {zip_file_path}.")
+            logging.info(f"Downloading dataset from %s to %s.", url, zip_file_path)
             download_file(url, zip_file_path)
 
-        logging.info(f"Extracting {zip_file_path} to {folder_path}.")
+        logging.info(f"Extracting %s to %s.", zip_file_path, folder_path)
         with ZipFile(zip_file_path, "r") as zip_ref:
             zip_ref.extractall(folder_path)
         os.remove(zip_file_path)

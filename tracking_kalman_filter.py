@@ -38,7 +38,7 @@ def get_transition_matrix(model: str) -> np.ndarray:
 def kalman_tracking(
     annotations,
     model="Velocity",
-    plot=True) -> Tuple[Dict[int, np.ma.MaskedArray], Dict[int, np.ndarray], Dict[int, np.ndarray]]:
+    plot=True) -> tuple[dict[int, np.ma.MaskedArray], dict[int, np.ndarray], dict[int, np.ndarray]]:
 
     max_number_frames = int(np.max(annotations.T[0]) + 1)
     obj_ids = np.unique(annotations[:, 1])
