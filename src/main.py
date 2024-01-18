@@ -1,8 +1,8 @@
+import os
+import cv2
 from setup import setup_dataset
 from object_tracker import ObjectTracker
 from labeling_gui import LabelingGUI
-import os
-import cv2
 
 
 def main(base_folder):

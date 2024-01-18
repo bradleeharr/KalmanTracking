@@ -1,5 +1,5 @@
-import cv2
 import logging
+import cv2
 
 
 class LabelingGUI:
@@ -15,8 +15,8 @@ class LabelingGUI:
         :param event: OpenCV Mouse Event Callback
         :param x: Mouse X position
         :param y: Mouse Y position
-        :param flags:
-        :param param:
+        :param flags: OpenCV event flags (unused)
+        :param param:  OpenCV event param (unused)
         :return: None
         """
         if event == cv2.EVENT_LBUTTONDOWN:

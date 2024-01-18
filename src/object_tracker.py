@@ -1,11 +1,12 @@
-import cv2
 import logging
-import numpy as np
 from typing import List, Tuple
+
+import cv2
+import numpy as np
 
 
 class ObjectTracker:
-    def __init__(self, boxes: List[Tuple[int, int, int, int]]):
+    def __init__(self, boxes: list[tuple[int, int, int, int]]):
         self.boxes = boxes
         self.tracker = cv2.legacy.MultiTracker_create()
         self.initialized = False
