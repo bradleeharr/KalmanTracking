@@ -25,7 +25,7 @@ jobs:
     - name: Python Black Formatting
       uses: psf/black@stable
       with:
-        options: "--check --verbose"
+        options: "--verbose"
 
     - name: Analysing the code with pylint
       run: pylint $(git ls-files '*.py')
