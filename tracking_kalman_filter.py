@@ -8,7 +8,6 @@ from plotting import plot_kalman_filter_results
 from utility import (
     display_annotated_video,
     get_csv_files_in_folder,
-    get_objects,
     load_image_paths,
     mask_measurements,
     read_annotations_from_csv,
@@ -120,8 +119,8 @@ def run_filter(mode, plotting=False):
     for idx, csv_file in enumerate(csv_files):
         original_annotations = read_annotations_from_csv(csv_file)
         # In TRICLOBS, perform the object identification algorithm
-        if mode == "TRICLOBS":
-            original_annotations = get_objects(original_annotations)
+        #if mode == "TRICLOBS":
+            #original_annotations = get_objects(original_annotations)
         obj_ids = np.unique(original_annotations[:, 1])
         image_paths = load_image_paths(imgdirs[idx])
         for model in ["Velocity", "Acceleration"]:

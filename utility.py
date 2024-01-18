@@ -2,7 +2,7 @@ import csv
 import os
 import glob
 import numpy as np
-from cv2 import cv2
+import cv2
 from typing import List, Tuple
 
 
