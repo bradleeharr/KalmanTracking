@@ -23,9 +23,9 @@ jobs:
         pip install -r requirements.txt
 
     - name: Python Black Formatting
-      uses: lgeiger/black-action@v1
+      uses: psf/black@stable
       with:
-        path: "." # optional, default is ./
+        options: "--check --verbose"
 
     - name: Analysing the code with pylint
       run: pylint $(git ls-files '*.py')
