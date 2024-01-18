@@ -1,5 +1,4 @@
-
-from install import setup_dataset
+from setup import setup_dataset
 from object_tracker import ObjectTracker
 from labeling_gui import LabelingGUI
 import os
@@ -28,7 +27,7 @@ def main(base_folder):
             if frame is not None:
                 frame = tracker.update_tracker(frame)
                 cv2.imshow("Tracking", frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
             else:
                 print(f"Failed to read frame: {full_frame_path}")
@@ -36,15 +35,11 @@ def main(base_folder):
 
 if __name__ == "__main__":
     # Dataset
-    dataset_folder_path = 'data/TrainReal'
-    dataset_zip_file_path = 'data/datasets'
-    dataset_url = 'https://lilablobssc.blob.core.windows.net/conservationdrones/v01/conservation_drones_train_real.zip'
+    dataset_folder_path = "data/TrainReal"
+    dataset_zip_file_path = "data/datasets"
+    dataset_url = "https://lilablobssc.blob.core.windows.net/conservationdrones/v01/conservation_drones_train_real.zip"
     setup_dataset(dataset_folder_path, dataset_zip_file_path, dataset_url)
 
     # Scenes from Dataset
-    base_folder = 'data/TrainReal/TrainReal/images'
+    base_folder = "data/TrainReal/TrainReal/images"
     main(base_folder)
-
-
-
-

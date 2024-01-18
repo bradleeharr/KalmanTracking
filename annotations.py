@@ -24,7 +24,7 @@ def get_objects(data, min_detections=60):
             next_id = num_objects + 1
         else:
             # Find frames within the max_frame_gap
-            candidate_frames = frame_numbers[max(0, i - max_frame_gap):i]
+            candidate_frames = frame_numbers[max(0, i - max_frame_gap) : i]
 
             for j in range(current_frame_data.shape[0]):
                 obj = current_frame_data[j, :]
@@ -32,7 +32,7 @@ def get_objects(data, min_detections=60):
                 size = obj[4:6]
                 obj_type = obj[6]
 
-                min_distance = float('inf')
+                min_distance = float("inf")
                 obj_id = -1
 
                 for k in range(len(candidate_frames)):
@@ -47,7 +47,9 @@ def get_objects(data, min_detections=60):
                         size_distances = np.linalg.norm(candidates[:, 4:6] - size, axis=1)
 
                         # Distance metric that considers both position and size differences
-                        combined_distances = position_weight * position_distances + size_weight * size_distances
+                        combined_distances = (
+                            position_weight * position_distances + size_weight * size_distances
+                        )
 
                         cur_min_distance = np.min(combined_distances)
                         cur_min_idx = np.argmin(combined_distances)
@@ -104,7 +106,18 @@ def get_objects(data, min_detections=60):
                 data = np.vstack([data, detection])
 
     # Display the data with assigned IDs as a table
-    headers = ["Frame", "ID", "X", "Y", "Width", "Height", "Obj_Type", "N/A", "N/A", "Confidence"]
+    headers = [
+        "Frame",
+        "ID",
+        "X",
+        "Y",
+        "Width",
+        "Height",
+        "Obj_Type",
+        "N/A",
+        "N/A",
+        "Confidence",
+    ]
     print(tabulate(data, headers=headers))
 
     # Display the data with assigned IDs
@@ -112,12 +125,12 @@ def get_objects(data, min_detections=60):
 
 
 if __name__ == "__main__":
-    annotations_dir = r'TRI_A/detections'
+    annotations_dir = r"TRI_A/detections"
     csv_files = get_csv_files_in_folder(annotations_dir)
     for csv_file in csv_files:
         data = read_annotations_from_csv(csv_file)
         print(get_objects(data))
-        with open('datafile.csv', 'w', newline='') as csvfile:
+        with open("datafile.csv", "w", newline="") as csvfile:
             csv_writer = csv.writer(csvfile)
             for row in data:
                 csv_writer.writerow(row)
