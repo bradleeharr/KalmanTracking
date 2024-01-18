@@ -73,7 +73,7 @@ def kalman_tracking(annotations, model='Velocity', plot=True):
 
 def run_filter(mode, plotting=False):
     if mode == 'BIRDSAI':
-        annotations_dir = r'TrainReal/annotations'
+        annotations_dir = r'src/data/TrainReal/TrainReal/annotations'
     elif mode == 'TRICLOBS':
         annotations_dir = r'TRI_A/detections'
 
@@ -82,7 +82,7 @@ def run_filter(mode, plotting=False):
     imgdirs = []
     for idx, file in enumerate(csv_files):
         print("Found csv file :", os.path.basename(file))
-        if mode == 'BIRDSAI': imgdirs.append(r'TrainReal/images/' + os.path.basename(file)[:-4])
+        if mode == 'BIRDSAI': imgdirs.append(r'src/data/TrainReal/TrainReal/images/' + os.path.basename(file)[:-4])
         elif mode == 'TRICLOBS':
             filename = r'TRI_A/' + os.path.basename(file)[11:-4] + '/frames'
             imgdirs.append(filename)
