@@ -4,7 +4,6 @@ Video tracking using
 2. Kalman filter and smoothing methods
 
 # How to run
-
 ### Prerequisites
 
 - Create a virtual environment:
@@ -36,7 +35,6 @@ Video tracking using
     python tracking_kalman_filter.py
     ```
 
-    
 
 # Scenarios
 Looking at two different scenarios using two different datasets. 
