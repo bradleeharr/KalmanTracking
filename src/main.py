@@ -31,6 +31,7 @@ def main(base_folder):
                     break
             else:
                 print(f"Failed to read frame: {full_frame_path}")
+    # TOOD: Get Key Performance Indicators for runnning tracking : Speed (fps) and Tracking Performance (missed detections, mse?)
 
 
 if __name__ == "__main__":

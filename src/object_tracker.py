@@ -24,7 +24,7 @@ class ObjectTracker:
             return False
 
         for box in self.boxes:
-            self.tracker.add(cv2.legacy.TrackerMOSSE_create(), frame, tuple(box))
+            self.tracker.add(cv2.legacy.TrackerMOSSE_create(), frame, tuple(box)) # TODO: Apply and Benchmark OpenCV Trackers
         self.initialized = True
         return True
 
