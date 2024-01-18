@@ -343,6 +343,8 @@ property-classes=abc.abstractproperty
 
 [TYPECHECK]
 
+extension-pkg-whitelist=cv2,np,csv
+
 # Regex pattern to define which classes are considered mixins if ignore-mixin-
 # members is set to 'yes'
 mixin-class-rgx=.*MixIn
