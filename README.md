@@ -1,12 +1,11 @@
 # Kalman Tracking
 
-Video object tracking is a process of dynamically creating a model for the location of an obejct within a video.
+This project is an example of Kalman Filters used for video object tracking.
+Video object tracking is a process of dynamically creating a model for the location of an obejct within a video. It is similar to object detection. In both cases, the location of an object and the identity of an object are usually the most important problems.  
 
-It is similar to object detection. In both cases, the location of an object and the identity of an object are usually the most important problems.  
 
-
-Video tracking using 
-1. OpenCV Trackers: 
+This demontrates video tracking using 
+1. OpenCV Trackers: MOSSE
 2. Kalman filter and smoothing methods
 
 # How to run
