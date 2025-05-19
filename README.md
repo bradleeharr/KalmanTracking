@@ -83,8 +83,7 @@ Using a constant-acceleration model:
 <p align="center">
 <img src="https://github.com/bradleeharr/MultiBandIRTracking/assets/56418392/5f83389b-5261-4754-b373-377a29256a43"/>
 </p>
-
-In this case, the constant-velocity model is far superior than the constant acceleration model, and fluctuations due to noise cause significant error in the constant acceleration model. 
-The drone used to record the footage moves with constant velocity, so it is reasonable that the constant velocity scenario accurately models the motion.
+* In this case, the constant-velocity model is far superior than the constant acceleration model. Fluctuations and instability from noise causes significant errors in the constant acceleration model. 
+* The drone used to record the footage moves with reasnoably constant velocity, so it is reasonable that the constant velocity scenario accurately models the motion.
 
 
